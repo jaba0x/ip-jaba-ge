@@ -1,0 +1,13 @@
+name = "ip-jaba-ge"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# ip.jaba.ge is served directly by this Worker. Wrangler creates the DNS
+# record and TLS certificate on the jaba.ge zone.
+routes = [
+  { pattern = "ip.jaba.ge", custom_domain = true }
+]
+
+# Font and favicon. Any path without a matching file goes to the Worker.
+[assets]
+directory = "./public"

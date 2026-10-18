@@ -1,0 +1,13 @@
+{
+  "name": "ip-jaba-ge",
+  "version": "1.0.0",
+  "description": "ip.jaba.ge: what's my IP, on Cloudflare Workers",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

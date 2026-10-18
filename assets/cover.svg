@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="ip.jaba.ge: what's my IP">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1b2d"/>
+      <stop offset="1" stop-color="#16263f"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#45d69b"/>
+      <stop offset="1" stop-color="#1fa874"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#45d69b" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#45d69b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <style>
+    .wm   { font-family: system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; }
+    .mono { font-family: ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
+    .dot  { fill: #ffd35a; }
+    .ping { fill: none; stroke: #ffd35a; stroke-width: 3; opacity: 0; transform-box: fill-box; transform-origin: center; animation: ping 2.6s ease-out infinite; }
+    @keyframes ping {
+      0%   { transform: scale(1);   opacity: .9; }
+      70%  { transform: scale(2.4); opacity: 0; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .ping { animation: none; } }
+  </style>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="310" cy="320" r="300" fill="url(#glow)"/>
+
+  <!-- icon tile -->
+  <g transform="translate(150 160) scale(1.25)">
+    <rect width="256" height="256" rx="56" fill="#0b1524"/>
+    <g transform="translate(-25 -13)"><rect x="86" y="104" width="26" height="92" rx="13" fill="url(#g)"/><circle class="ping" cx="99" cy="74" r="15"/><circle class="dot" cx="99" cy="74" r="15"/><path d="M136 196V122a36 36 0 1 1 36 36h-10" fill="none" stroke="url(#g)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/><path d="M136 210v-88" stroke="url(#g)" stroke-width="26" stroke-linecap="round"/></g>
+  </g>
+
+  <!-- wordmark -->
+  <text class="wm" x="560" y="316" font-size="132" font-weight="800" fill="#eef3f9" letter-spacing="-2">ip<tspan fill="#45d69b">.jaba.ge</tspan></text>
+
+  <!-- tagline -->
+  <text class="wm" x="564" y="388" font-size="34" fill="#9fb2c8">Your IP in a browser or a terminal.</text>
+  <text class="wm" x="564" y="434" font-size="34" fill="#9fb2c8">Plus location, network and more.</text>
+
+  <!-- command pill -->
+  <rect x="564" y="476" width="272" height="48" rx="24" fill="none" stroke="#45d69b" stroke-opacity="0.5"/>
+  <text class="mono" x="700" y="508" font-size="24" fill="#45d69b" text-anchor="middle">curl ip.jaba.ge</text>
+</svg>

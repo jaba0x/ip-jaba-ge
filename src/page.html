@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__IP__ · ip.jaba.ge</title>
+<meta name="description" content="What's my IP? Your public IP address, location, network and connection details. Works with curl too.">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/familjen-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face {
+  font-family: "Familjen Grotesk"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("/fonts/familjen-grotesk-latin-wght-normal.woff2") format("woff2");
+}
+
+:root {
+  --bg: #FFFFFF;
+  --ink: #16181D;
+  --muted: #6B7080;
+  --line: #E4E6EB;
+  --surface: #F5F6F8;
+  --accent: #0A8F63;
+  --speed: #2F5BEA;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101114; --ink: #F1F2F5; --muted: #9298A6;
+    --line: #262930; --surface: #181A1F; --accent: #45D69B; --speed: #7C9BFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101114; --ink: #F1F2F5; --muted: #9298A6;
+  --line: #262930; --surface: #181A1F; --accent: #45D69B; --speed: #7C9BFF;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.5 "Familjen Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.page {
+  min-height: 100vh; min-height: 100dvh;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: 0 16px;
+}
+
+header { display: flex; justify-content: center; padding: 28px 0 0; }
+.brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  color: var(--ink); text-decoration: none;
+  font-weight: 600; font-size: 18px; letter-spacing: -.01em;
+}
+.brand svg { width: 26px; height: 26px; }
+
+main {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 6vh 0 4vh;
+  min-width: 0;
+}
+.intro { margin: 0; font-size: clamp(18px, 2.6vw, 24px); color: var(--muted); letter-spacing: -.01em; }
+
+.reading {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(14px, 2.4vw, 26px);
+  margin: clamp(6px, 1.4vh, 14px) 0 0;
+  max-width: 100%;
+  /* nudge right so the address, not address + button, sits on the center line */
+  padding-left: clamp(48px, 5.4vw, 58px);
+}
+.ip {
+  font-size: clamp(54px, 12.5vw, 150px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -.04em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.ip.v6 { font-size: clamp(30px, 5.6vw, 68px); letter-spacing: -.02em; }
+
+/* round copy button, same shape as the speed test's restart button */
+.copy {
+  flex: none;
+  width: clamp(48px, 5.4vw, 58px); aspect-ratio: 1;
+  border-radius: 50%; padding: 0; cursor: pointer;
+  border: 2.5px solid var(--line); background: transparent;
+  display: grid; place-items: center;
+  transition: border-color .2s ease, color .2s ease;
+}
+.copy:hover { border-color: var(--muted); }
+.copy svg { width: 42%; height: 42%; }
+.copy .i-done { display: none; }
+.copy.done { border-color: var(--accent); color: var(--accent); }
+.copy.done .i-copy { display: none; }
+.copy.done .i-done { display: block; }
+
+.summary { margin: 18px 0 0; min-height: 1.5em; font-size: 16px; color: var(--muted); max-width: 46ch; }
+
+.more-btn {
+  margin-top: clamp(26px, 5vh, 44px);
+  height: 42px; padding: 0 22px; border-radius: 999px;
+  background: transparent; border: 1px solid var(--line); cursor: pointer;
+  font-weight: 500; font-size: 15px; color: var(--ink);
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.more-btn:hover { border-color: var(--muted); }
+.more-btn[aria-expanded="true"] { background: var(--surface); border-color: var(--surface); }
+
+.more {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .35s ease;
+  width: min(560px, 100%);
+}
+.more.open { grid-template-rows: 1fr; }
+.more > div { overflow: hidden; }
+.more-inner { padding-top: 30px; }
+
+.facts {
+  margin: 0; padding: 18px 20px;
+  background: var(--surface); border-radius: 14px;
+  display: grid; grid-template-columns: auto 1fr; gap: 9px 18px;
+  text-align: left; font-size: 15px;
+}
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.facts .sub { color: var(--muted); }
+.facts a { color: var(--accent); text-decoration: none; }
+.facts a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.cli { margin: 26px 0 0; text-align: left; }
+.cli h2 { margin: 0 0 10px; font-size: 15px; font-weight: 500; color: var(--muted); text-align: center; }
+.cli ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cli button {
+  width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  padding: 10px 14px; border-radius: 10px; cursor: pointer; text-align: left;
+  background: transparent; border: 1px solid var(--line);
+  transition: border-color .2s ease;
+}
+.cli button:hover { border-color: var(--muted); }
+.cli code { font: 500 14px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.cli span { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.cli button.done span { color: var(--accent); }
+
+footer {
+  display: grid; justify-items: center; gap: 14px;
+  text-align: center; font-size: 13px; color: var(--muted);
+  padding: 24px 0 calc(22px + env(safe-area-inset-bottom));
+}
+footer p { margin: 0 auto; max-width: 52ch; }
+.sibling {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 44px; padding: 0 18px 0 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+  font-size: 15px; font-weight: 500;
+  transition: border-color .2s ease;
+}
+.sibling:hover { border-color: var(--muted); }
+.sibling svg { width: 28px; height: 28px; }
+.sibling .dim { color: var(--muted); font-weight: 400; }
+
+@media (max-width: 560px) {
+  .reading { flex-direction: column; padding-left: 0; gap: 18px; }
+  .facts { grid-template-columns: 1fr; gap: 2px; }
+  .facts dd { margin-bottom: 10px; }
+  .facts dd:last-child { margin-bottom: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .more { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="page" id="app">
+  <header>
+    <a class="brand" href="/" aria-label="ip.jaba.ge home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--accent)"/><g transform="translate(-1.7 -0.8)"><rect x="8.6" y="13" width="3.6" height="11" rx="1.8" fill="#fff"/><circle cx="10.4" cy="8.6" r="2.1" fill="#fff"/><path d="M16 25.5V14.5a4.6 4.6 0 1 1 4.6 4.6h-1.4" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+      ip.jaba.ge
+    </a>
+  </header>
+
+  <main>
+    <p class="intro" id="intro">Your public IP address is</p>
+
+    <div class="reading">
+      <span class="ip" id="ip" aria-describedby="intro">__IP__</span>
+      <button class="copy" id="copy" type="button" aria-label="Copy IP address" title="Copy">
+        <svg class="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg>
+        <svg class="i-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+    </div>
+
+    <p class="summary" id="summary" role="status" aria-live="polite"></p>
+
+    <button class="more-btn" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More info</button>
+
+    <section class="more" id="more" aria-label="Connection details">
+      <div>
+        <div class="more-inner">
+          <dl class="facts" id="facts"></dl>
+
+          <div class="cli">
+            <h2>From a terminal</h2>
+            <ul>
+              <li><button type="button" data-cmd="curl ip.jaba.ge"><code>curl ip.jaba.ge</code><span>just the IP</span></button></li>
+              <li><button type="button" data-cmd="curl ip.jaba.ge/all"><code>curl ip.jaba.ge/all</code><span>everything, as text</span></button></li>
+              <li><button type="button" data-cmd="curl ip.jaba.ge/json"><code>curl ip.jaba.ge/json</code><span>everything, as JSON</span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="sibling" href="https://speed.jaba.ge" aria-label="Test your internet speed at speed.jaba.ge">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="var(--speed)"/><path d="M8.5 20.5a8 8 0 1 1 15 0" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M16 18.5l4.6-5.6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+      Test your speed <span class="dim">speed.jaba.ge</span>
+    </a>
+    <p>Read from your connection to the nearest Cloudflare data center. Location is approximate. No ads, no cookies, no tracking.</p>
+  </footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const d = JSON.parse($("data").textContent);
+
+  if (d.version === 6) $("ip").classList.add("v6");
+
+  const place = [d.city, d.region && d.region !== d.city ? d.region : null, d.country_name || d.country].filter(Boolean).join(", ");
+  const net = d.org || (d.asn ? "AS" + d.asn : "");
+  $("summary").textContent = ["IPv" + d.version, [net, d.city ? "in " + [d.city, d.country_name || d.country].filter(Boolean).join(", ") : ""].filter(Boolean).join(" ")]
+    .filter(Boolean).join(" · ");
+
+  // ---------- copy ----------
+  async function copy(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const r = document.createRange(); r.selectNodeContents($("ip"));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      try { document.execCommand("copy"); } catch {}
+      s.removeAllRanges();
+    }
+    btn.classList.add("done");
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => btn.classList.remove("done"), 1600);
+  }
+  $("copy").addEventListener("click", (e) => copy(d.ip, e.currentTarget));
+  for (const b of document.querySelectorAll(".cli button")) {
+    const hint = b.querySelector("span"), was = hint.textContent;
+    b.addEventListener("click", () => {
+      copy(b.dataset.cmd, b);
+      hint.textContent = "copied";
+      setTimeout(() => (hint.textContent = was), 1600);
+    });
+  }
+
+  // ---------- details ----------
+  const facts = $("facts");
+  function row(label, ...parts) {
+    parts = parts.filter((p) => p != null && p !== "");
+    if (!parts.length) return null;
+    const dt = document.createElement("dt"); dt.textContent = label;
+    const dd = document.createElement("dd");
+    parts.forEach((p, i) => {
+      if (i) dd.append(document.createElement("br"));
+      if (typeof p === "string") { const s = document.createElement("span"); if (i) s.className = "sub"; s.textContent = p; dd.append(s); }
+      else dd.append(p);
+    });
+    facts.append(dt, dd);
+    return dd;
+  }
+  function link(href, label) {
+    const a = document.createElement("a");
+    a.href = href; a.textContent = label; a.target = "_blank"; a.rel = "noopener noreferrer";
+    return a;
+  }
+
+  row("IP", d.ip, "IPv" + d.version);
+  const hostRow = row("Hostname", "Looking up…");
+  row("Location", place + (d.postal ? " " + d.postal : ""), d.eu ? "In the EU" : "");
+  if (d.latitude != null) {
+    const ll = d.latitude.toFixed(4) + ", " + d.longitude.toFixed(4);
+    row("Coordinates", link("https://www.openstreetmap.org/?mlat=" + d.latitude + "&mlon=" + d.longitude + "#map=11/" + d.latitude + "/" + d.longitude, ll));
+  }
+  if (d.timezone) {
+    let now = "";
+    try { now = new Intl.DateTimeFormat("en-GB", { timeZone: d.timezone, hour: "2-digit", minute: "2-digit", weekday: "short" }).format(new Date()); } catch {}
+    row("Timezone", d.timezone, now ? "Local time " + now : "");
+  }
+  row("Network", d.org, d.asn ? link("https://bgp.tools/as/" + d.asn, "AS" + d.asn) : "");
+  row("Cloudflare", d.colo_city ? "Cloudflare " + d.colo_city : (d.colo ? "Cloudflare" : ""), d.colo ? "Data center " + d.colo : "");
+  row("Connection", [d.http, d.tls].filter(Boolean).join(" · "), d.rtt_ms ? "Round trip " + d.rtt_ms + " ms" : "");
+  row("Browser", d.user_agent);
+
+  const dropHost = () => { hostRow.previousSibling.remove(); hostRow.remove(); };
+  fetch("/json", { cache: "no-store" })
+    .then((r) => r.json())
+    .then((j) => { if (j.hostname) hostRow.firstChild.textContent = j.hostname; else dropHost(); })
+    .catch(dropHost);
+
+  // ---------- more info panel ----------
+  const moreBtn = $("more-btn"), more = $("more");
+  function setMore(open) {
+    more.classList.toggle("open", open);
+    moreBtn.setAttribute("aria-expanded", String(open));
+    moreBtn.textContent = open ? "Less info" : "More info";
+    more.inert = !open;
+    try { localStorage.setItem("ip.more", open ? "1" : "0"); } catch {}
+  }
+  moreBtn.addEventListener("click", () => setMore(!more.classList.contains("open")));
+  let startOpen = false;
+  try { startOpen = localStorage.getItem("ip.more") === "1"; } catch {}
+  setMore(startOpen);
+})();
+</script>
+</body>
+</html>
